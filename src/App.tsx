@@ -8,7 +8,6 @@ import {
   Wifi, WifiOff, Loader2, Edit2, Download
 } from 'lucide-react';
 import { Car, UsageLog, CarStatus, Reservation } from './types';
-import { INITIAL_CARS, INITIAL_LOGS, INITIAL_RESERVATIONS } from './data';
 import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, getDocs, writeBatch, deleteField } from 'firebase/firestore';
 import { db } from './firebase';
 import { handleFirestoreError, OperationType } from './utils/firebaseErrorHandler';
