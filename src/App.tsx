@@ -523,11 +523,22 @@ export default function App() {
     const formData = new FormData(e.currentTarget);
     const notes = formData.get('notes') as string;
 
+    let driverName = selectedCar.currentDriver;
+    if (!driverName) {
+      const carLogs = logs.filter(log => log.carId === selectedCar.id && (log.type === 'check-out' || log.type === 'check-in'));
+      if (carLogs.length > 0) {
+        carLogs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+        driverName = carLogs[0].driverName;
+      } else {
+        driverName = 'Unknown';
+      }
+    }
+
     const newLog: UsageLog = {
       id: Math.random().toString(36).substr(2, 9),
       carId: selectedCar.id,
       type: 'accident',
-      driverName: selectedCar.currentDriver || 'Unknown',
+      driverName,
       notes,
       photos: accidentPhotos,
       timestamp: new Date().toISOString(),
