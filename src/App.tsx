@@ -12,6 +12,8 @@ import { collection, onSnapshot, doc, setDoc, updateDoc, deleteDoc, getDocs, wri
 import { db } from './firebase';
 import { handleFirestoreError, OperationType } from './utils/firebaseErrorHandler';
 
+const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect width='18' height='18' x='3' y='3' rx='2' ry='2'/%3E%3Ccircle cx='9' cy='9' r='2'/%3E%3Cpath d='m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21'/%3E%3Cline x1='3' x2='21' y1='3' y2='21' stroke='%23ef4444' stroke-width='1.5'/%3E%3C/svg%3E";
+
 const EMPLOYEES = [
   "ธีรพงษ์ ถามา",
   "อภิวัฒน์ ศิลารัตน์",
@@ -691,7 +693,41 @@ export default function App() {
     const newPhotos = await Promise.all(files.map(file => {
       return new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
+        reader.onload = (event) => {
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 1024;
+            const MAX_HEIGHT = 1024;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+              if (width > MAX_WIDTH) {
+                height *= MAX_WIDTH / width;
+                width = MAX_WIDTH;
+              }
+            } else {
+              if (height > MAX_HEIGHT) {
+                width *= MAX_HEIGHT / height;
+                height = MAX_HEIGHT;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, width, height);
+              // Compress to JPEG with 70% quality
+              resolve(canvas.toDataURL('image/jpeg', 0.7));
+            } else {
+              resolve(event.target?.result as string);
+            }
+          };
+          img.onerror = error => reject(error);
+          img.src = event.target?.result as string;
+        };
         reader.onerror = error => reject(error);
         reader.readAsDataURL(file);
       });
@@ -1065,7 +1101,15 @@ export default function App() {
                                   <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar">
                                     {log.photos.map((photo, i) => (
                                       <button key={i} onClick={() => setPreviewImage(photo)} className="shrink-0 active:scale-95 transition-transform">
-                                        <img src={photo} alt={`Car state ${i+1}`} className="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200" />
+                                        <img 
+                                          src={photo} 
+                                          alt={`Car state ${i+1}`} 
+                                          className="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200" 
+                                          onError={(e) => {
+                                            e.currentTarget.src = FALLBACK_IMAGE;
+                                            e.currentTarget.className = "w-16 h-16 object-contain bg-slate-50 rounded-xl border border-slate-200 p-4 opacity-50";
+                                          }}
+                                        />
                                       </button>
                                     ))}
                                   </div>
@@ -1219,7 +1263,15 @@ export default function App() {
                                   <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar">
                                     {log.photos.map((photo, i) => (
                                       <button key={i} onClick={() => setPreviewImage(photo)} className="shrink-0 active:scale-95 transition-transform">
-                                        <img src={photo} alt={`Car state ${i+1}`} className="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200" />
+                                        <img 
+                                          src={photo} 
+                                          alt={`Car state ${i+1}`} 
+                                          className="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200" 
+                                          onError={(e) => {
+                                            e.currentTarget.src = FALLBACK_IMAGE;
+                                            e.currentTarget.className = "w-16 h-16 object-contain bg-slate-50 rounded-xl border border-slate-200 p-4 opacity-50";
+                                          }}
+                                        />
                                       </button>
                                     ))}
                                   </div>
@@ -1573,7 +1625,15 @@ export default function App() {
             <div className="flex flex-wrap gap-3 mb-1">
               {checkinPhotos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={photo} alt="Car state" className="w-full h-full object-contain bg-white" />
+                  <img 
+                    src={photo} 
+                    alt="Car state" 
+                    className="w-full h-full object-contain bg-white" 
+                    onError={(e) => {
+                      e.currentTarget.src = FALLBACK_IMAGE;
+                      e.currentTarget.className = "w-full h-full object-contain bg-slate-50 p-4 opacity-50";
+                    }}
+                  />
                   <button type="button" onClick={() => removePhoto(index, 'checkin')} className="absolute top-1 right-1 bg-red-500/90 backdrop-blur-sm text-white rounded-full p-1 active:scale-90 transition-transform">
                     <XCircle className="w-4 h-4" />
                   </button>
@@ -1653,7 +1713,15 @@ export default function App() {
             <div className="flex flex-wrap gap-3 mb-1">
               {maintenancePhotos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={photo} alt="Maintenance" className="w-full h-full object-contain bg-white" />
+                  <img 
+                    src={photo} 
+                    alt="Maintenance" 
+                    className="w-full h-full object-contain bg-white" 
+                    onError={(e) => {
+                      e.currentTarget.src = FALLBACK_IMAGE;
+                      e.currentTarget.className = "w-full h-full object-contain bg-slate-50 p-4 opacity-50";
+                    }}
+                  />
                   <button type="button" onClick={() => removePhoto(index, 'maintenance')} className="absolute top-1 right-1 bg-red-500/90 backdrop-blur-sm text-white rounded-full p-1 active:scale-90 transition-transform">
                     <XCircle className="w-4 h-4" />
                   </button>
@@ -1690,7 +1758,15 @@ export default function App() {
             <div className="flex flex-wrap gap-3 mb-1">
               {accidentPhotos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={photo} alt="Accident" className="w-full h-full object-contain bg-white" />
+                  <img 
+                    src={photo} 
+                    alt="Accident" 
+                    className="w-full h-full object-contain bg-white" 
+                    onError={(e) => {
+                      e.currentTarget.src = FALLBACK_IMAGE;
+                      e.currentTarget.className = "w-full h-full object-contain bg-slate-50 p-4 opacity-50";
+                    }}
+                  />
                   <button type="button" onClick={() => removePhoto(index, 'accident')} className="absolute top-1 right-1 bg-red-500/90 backdrop-blur-sm text-white rounded-full p-1 active:scale-90 transition-transform">
                     <XCircle className="w-4 h-4" />
                   </button>
@@ -1800,6 +1876,10 @@ export default function App() {
             alt="Preview" 
             className="max-w-full max-h-full object-contain rounded-lg"
             onClick={(e) => e.stopPropagation()}
+            onError={(e) => {
+              e.currentTarget.src = FALLBACK_IMAGE;
+              e.currentTarget.className = "w-32 h-32 object-contain opacity-50";
+            }}
           />
         </div>
       )}
