@@ -674,7 +674,7 @@ export default function App() {
     setIsExportModalOpen(false);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>, type: 'checkin' | 'maintenance' | 'accident' = 'checkin') => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'checkin' | 'maintenance' | 'accident' = 'checkin') => {
     const files = Array.from(e.target.files || []) as File[];
     const currentPhotos = type === 'checkin' ? checkinPhotos : type === 'maintenance' ? maintenancePhotos : accidentPhotos;
     const maxPhotos = type === 'checkin' ? 6 : 4;
@@ -688,7 +688,15 @@ export default function App() {
       return;
     }
 
-    const newPhotos = files.map(file => URL.createObjectURL(file));
+    const newPhotos = await Promise.all(files.map(file => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = error => reject(error);
+        reader.readAsDataURL(file);
+      });
+    }));
+
     if (type === 'checkin') {
       setCheckinPhotos([...checkinPhotos, ...newPhotos]);
     } else if (type === 'maintenance') {
@@ -746,8 +754,8 @@ export default function App() {
                   <button onClick={() => setView('history')} className="p-2 hover:bg-orange-700 rounded-full transition-colors active:bg-orange-700" title="ประวัติการใช้งาน">
                     <History className="w-5 h-5" />
                   </button>
-                  <div className="w-8 h-8 rounded-full bg-orange-700 flex items-center justify-center border border-orange-500">
-                    <span className="font-medium text-sm">AD</span>
+                  <div className="w-8 h-8 rounded-full bg-orange-700 flex items-center justify-center border border-orange-500" title="Admin">
+                    <span className="font-medium text-sm">Admin</span>
                   </div>
                 </div>
               </>
@@ -1057,7 +1065,7 @@ export default function App() {
                                   <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar">
                                     {log.photos.map((photo, i) => (
                                       <button key={i} onClick={() => setPreviewImage(photo)} className="shrink-0 active:scale-95 transition-transform">
-                                        <img src={photo} alt={`Car state ${i+1}`} className="w-16 h-16 object-cover rounded-xl border border-slate-200" />
+                                        <img src={photo} alt={`Car state ${i+1}`} className="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200" />
                                       </button>
                                     ))}
                                   </div>
@@ -1211,7 +1219,7 @@ export default function App() {
                                   <div className="flex overflow-x-auto gap-2 pb-1 hide-scrollbar">
                                     {log.photos.map((photo, i) => (
                                       <button key={i} onClick={() => setPreviewImage(photo)} className="shrink-0 active:scale-95 transition-transform">
-                                        <img src={photo} alt={`Car state ${i+1}`} className="w-16 h-16 object-cover rounded-xl border border-slate-200" />
+                                        <img src={photo} alt={`Car state ${i+1}`} className="w-16 h-16 object-contain bg-white rounded-xl border border-slate-200" />
                                       </button>
                                     ))}
                                   </div>
@@ -1565,7 +1573,7 @@ export default function App() {
             <div className="flex flex-wrap gap-3 mb-1">
               {checkinPhotos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={photo} alt="Car state" className="w-full h-full object-cover" />
+                  <img src={photo} alt="Car state" className="w-full h-full object-contain bg-white" />
                   <button type="button" onClick={() => removePhoto(index, 'checkin')} className="absolute top-1 right-1 bg-red-500/90 backdrop-blur-sm text-white rounded-full p-1 active:scale-90 transition-transform">
                     <XCircle className="w-4 h-4" />
                   </button>
@@ -1645,7 +1653,7 @@ export default function App() {
             <div className="flex flex-wrap gap-3 mb-1">
               {maintenancePhotos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={photo} alt="Maintenance" className="w-full h-full object-cover" />
+                  <img src={photo} alt="Maintenance" className="w-full h-full object-contain bg-white" />
                   <button type="button" onClick={() => removePhoto(index, 'maintenance')} className="absolute top-1 right-1 bg-red-500/90 backdrop-blur-sm text-white rounded-full p-1 active:scale-90 transition-transform">
                     <XCircle className="w-4 h-4" />
                   </button>
@@ -1682,7 +1690,7 @@ export default function App() {
             <div className="flex flex-wrap gap-3 mb-1">
               {accidentPhotos.map((photo, index) => (
                 <div key={index} className="relative w-20 h-20 rounded-xl overflow-hidden border border-slate-200 shadow-sm">
-                  <img src={photo} alt="Accident" className="w-full h-full object-cover" />
+                  <img src={photo} alt="Accident" className="w-full h-full object-contain bg-white" />
                   <button type="button" onClick={() => removePhoto(index, 'accident')} className="absolute top-1 right-1 bg-red-500/90 backdrop-blur-sm text-white rounded-full p-1 active:scale-90 transition-transform">
                     <XCircle className="w-4 h-4" />
                   </button>
