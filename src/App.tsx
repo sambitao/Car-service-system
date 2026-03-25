@@ -724,7 +724,8 @@ export default function App() {
             {view === 'dashboard' ? (
               <>
                 <div className="flex items-center">
-                  <Building2 className="w-6 h-6 sm:w-8 sm:h-8 text-orange-100 mr-2 sm:mr-3" />
+                  <CarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-orange-100 mr-1" />
+                  <Wrench className="w-4 h-4 sm:w-5 sm:h-5 text-orange-200 mr-2 sm:mr-3" />
                   <span className="font-bold text-lg sm:text-xl tracking-tight">Symphony Car & Tool</span>
                 </div>
                 <div className="flex items-center space-x-2">
