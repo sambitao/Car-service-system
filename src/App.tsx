@@ -422,6 +422,15 @@ export default function App() {
       timestamp: new Date(maintenanceDate).toISOString(),
     };
 
+    if (new Blob([JSON.stringify(newLog)]).size > 900000) {
+      setAlertDialog({
+        isOpen: true,
+        title: 'รูปภาพมีขนาดใหญ่เกินไป',
+        message: 'ขนาดรวมของรูปภาพเกินขีดจำกัด กรุณาลดจำนวนรูปภาพลง'
+      });
+      return;
+    }
+
     try {
       const batch = writeBatch(db);
       batch.set(doc(db, 'logs', newLog.id), newLog);
@@ -461,6 +470,15 @@ export default function App() {
       photos: checkinPhotos,
       timestamp: new Date().toISOString(),
     };
+
+    if (new Blob([JSON.stringify(newLog)]).size > 900000) {
+      setAlertDialog({
+        isOpen: true,
+        title: 'รูปภาพมีขนาดใหญ่เกินไป',
+        message: 'ขนาดรวมของรูปภาพเกินขีดจำกัด กรุณาลดจำนวนรูปภาพลง'
+      });
+      return;
+    }
 
     try {
       const batch = writeBatch(db);
@@ -543,6 +561,15 @@ export default function App() {
       photos: accidentPhotos,
       timestamp: new Date().toISOString(),
     };
+
+    if (new Blob([JSON.stringify(newLog)]).size > 900000) {
+      setAlertDialog({
+        isOpen: true,
+        title: 'รูปภาพมีขนาดใหญ่เกินไป',
+        message: 'ขนาดรวมของรูปภาพเกินขีดจำกัด กรุณาลดจำนวนรูปภาพลง'
+      });
+      return;
+    }
 
     try {
       await setDoc(doc(db, 'logs', newLog.id), newLog);
@@ -708,8 +735,8 @@ export default function App() {
           const img = new Image();
           img.onload = () => {
             const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 1024;
-            const MAX_HEIGHT = 1024;
+            const MAX_WIDTH = 600;
+            const MAX_HEIGHT = 600;
             let width = img.width;
             let height = img.height;
 
@@ -730,8 +757,8 @@ export default function App() {
             const ctx = canvas.getContext('2d');
             if (ctx) {
               ctx.drawImage(img, 0, 0, width, height);
-              // Compress to JPEG with 70% quality
-              resolve(canvas.toDataURL('image/jpeg', 0.7));
+              // Compress to JPEG with 50% quality to fit within Firestore 1MB limit
+              resolve(canvas.toDataURL('image/jpeg', 0.5));
             } else {
               resolve(event.target?.result as string);
             }
